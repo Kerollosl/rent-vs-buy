@@ -503,7 +503,7 @@ function readHashScenario(): { inputs: CalculatorInputs; error: string } {
 
 function readSavedScenarios(): SavedScenario[] {
   try {
-    const raw = JSON.parse(localStorage.getItem('equity-fold-scenarios') ?? '[]') as unknown
+    const raw = JSON.parse((localStorage.getItem('rent-vs-buy-scenarios') ?? localStorage.getItem('equity-fold-scenarios') ?? '[]')) as unknown
     if (!Array.isArray(raw)) return []
     return raw.slice(0, 100).flatMap((item) => {
       if (!item || typeof item !== 'object') return []
@@ -527,7 +527,7 @@ export default function App() {
   const [chartView, setChartView] = useState<ChartView>('netWorth')
   const [selectedYear, setSelectedYear] = useState(inputs.horizonYears)
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    try { return localStorage.getItem('equity-fold-theme') === 'dark' ? 'dark' : 'light' } catch { return 'light' }
+    try { return (localStorage.getItem('rent-vs-buy-theme') ?? localStorage.getItem('equity-fold-theme')) === 'dark' ? 'dark' : 'light' } catch { return 'light' }
   })
   const [toast, setToast] = useState(initialHash.error)
   const [scenarioName, setScenarioName] = useState('My scenario')
@@ -545,7 +545,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    try { localStorage.setItem('equity-fold-theme', theme) } catch { setToast('Theme preference could not be saved in this browser.') }
+    try { localStorage.setItem('rent-vs-buy-theme', theme) } catch { setToast('Theme preference could not be saved in this browser.') }
   }, [theme])
 
   useEffect(() => {
@@ -560,7 +560,7 @@ export default function App() {
 
   const commitSaved = (next: SavedScenario[], successMessage?: string) => {
     try {
-      localStorage.setItem('equity-fold-scenarios', JSON.stringify(next))
+      localStorage.setItem('rent-vs-buy-scenarios', JSON.stringify(next))
       setSaved(next)
       if (successMessage) setToast(successMessage)
     } catch {
@@ -812,7 +812,7 @@ export default function App() {
                   <select className="scenario-select" value={compareB} onChange={(event) => setCompareB(event.target.value)}><option value="">Choose a saved scenario</option>{saved.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name}</option>)}</select>
                 </div>
                 <div className="compare-result"><span className="metric-label">First scenario minus second</span><strong>{comparison?.horizonMismatch ? 'Match horizons first' : comparison ? money.format(comparison.difference) : 'Select two scenarios'}</strong>{comparison && <p className="method-note">{comparison.horizonMismatch ? `These scenarios end at years ${comparison.horizonA} and ${comparison.horizonB}; comparing final dollar values would mislead.` : `Best-strategy outcomes at year ${comparison.horizonA}: ${money.format(comparison.aBest)} and ${money.format(comparison.bBest)}.`}</p>}</div>
-                <button className="quiet-button" style={{ marginTop: 12 }} type="button" onClick={() => { try { downloadText('equity-fold-scenario.json', JSON.stringify(inputs, null, 2), 'application/json') } catch { setToast('Export failed. Try another browser or copy the scenario link.') } }}><Download size={15} />Export configuration</button>
+                <button className="quiet-button" style={{ marginTop: 12 }} type="button" onClick={() => { try { downloadText('rent-vs-buy-scenario.json', JSON.stringify(inputs, null, 2), 'application/json') } catch { setToast('Export failed. Try another browser or copy the scenario link.') } }}><Download size={15} />Export configuration</button>
               </div>
             </div>
           </section>

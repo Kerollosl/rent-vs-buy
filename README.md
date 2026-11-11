@@ -1,6 +1,6 @@
-# Equity Fold
+# Rent vs Buy
 
-Equity Fold is an interactive buy-versus-rent calculator that keeps annual cash flow symmetric. When one housing strategy costs less in a given year, that strategy invests the difference automatically.
+Rent vs Buy is an interactive buy-versus-rent calculator that keeps annual cash flow symmetric. When one housing strategy costs less in a given year, that strategy invests the difference automatically.
 
 ## Run locally
 

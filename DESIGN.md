@@ -1,5 +1,5 @@
 ---
-name: Equity Fold
+name: Rent vs Buy
 description: A calm closing-table folio for comparing the long-term wealth paths of buying and renting.
 colors:
   canvas: "#e7e1d5"
@@ -131,13 +131,13 @@ components:
     padding: "18px"
 ---
 
-# Design System: Equity Fold
+# Design System: Rent vs Buy
 
 ## Overview
 
 **Creative North Star: "The Closing Table"**
 
-Equity Fold should feel like a contemporary closing folio opened on a careful advisor's table: calm cotton-paper surfaces, precise rules, deep evergreen ink, and rust annotations that call attention to consequential numbers. It is editorial without becoming ornamental, financial without resembling a trading terminal, and dense without exposing every expert control at once.
+Rent vs Buy should feel like a contemporary closing folio opened on a careful advisor's table: calm cotton-paper surfaces, precise rules, deep evergreen ink, and rust annotations that call attention to consequential numbers. It is editorial without becoming ornamental, financial without resembling a trading terminal, and dense without exposing every expert control at once.
 
 The interface earns confidence through hierarchy and traceability. Assumptions live in a bounded folio; the verdict is the largest sentence on the page; supporting numbers descend into paired summaries, charts, sensitivity, reconciliation, and saved scenarios. The system favors crisp rules, tabular numerals, restrained color, and compact controls over interchangeable dashboard tiles.
 
