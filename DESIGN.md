@@ -2,26 +2,47 @@
 name: Rent vs Buy
 description: A calm closing-table folio for comparing the long-term wealth paths of buying and renting.
 colors:
-  canvas: "#e7e1d5"
-  paper: "#f7f5ef"
-  paper-deep: "#eee9df"
+  canvas: "#e9e4d9"
+  paper: "#fbf9f3"
+  paper-deep: "#f2efe6"
+  paper-sunk: "#e9e5d9"
   evergreen-ink: "#19332f"
   evergreen-soft: "#3e5750"
-  closing-rust: "#a44a32"
-  closing-rust-soft: "#f0d6ca"
-  ledger-sage: "#4a766b"
-  ledger-sage-soft: "#dbe6e2"
-  rule: "#d6cfc2"
+  evergreen-mute: "#5b6f67"
+  closing-rust: "#a34730"
+  closing-rust-wash: "#f1ddd3"
+  closing-rust-tint: "#e6ae9b"
+  ledger-teal: "#008a74"
+  ledger-teal-ink: "#1b6b5c"
+  ledger-teal-wash: "#d3ebe4"
+  ledger-teal-tint: "#8ccfbf"
+  principal-green: "#47625b"
+  rule: "#d9d5c9"
+  rule-strong: "#bdb8a8"
   night-canvas: "#111614"
-  night-paper: "#1a211f"
-  night-paper-deep: "#222b28"
+  night-paper: "#1c2723"
+  night-paper-deep: "#243229"
+  night-paper-sunk: "#16201c"
   night-ink: "#f0eee7"
   night-ink-soft: "#c1cec9"
-  night-rust: "#e38666"
-  night-rust-soft: "#4a3028"
-  night-sage: "#9cc6b9"
-  night-sage-soft: "#263c37"
-  night-rule: "#39443f"
+  night-ink-mute: "#9fb2aa"
+  night-rust: "#d9744f"
+  night-rust-ink: "#f0a184"
+  night-rust-wash: "#3d2b24"
+  night-rust-tint: "#7d4330"
+  night-teal: "#20a68c"
+  night-teal-ink: "#8fd3c0"
+  night-teal-wash: "#1d3a33"
+  night-teal-tint: "#2b6b5c"
+  night-principal: "#7e9b92"
+  night-rule: "#394a42"
+  night-rule-strong: "#566a60"
+  solid-rust: "#a34730"
+  solid-teal: "#1b6b5c"
+  on-solid: "#ffffff"
+  night-solid-rust: "#d9744f"
+  night-solid-teal: "#20a68c"
+  night-on-solid: "#111614"
 typography:
   display:
     fontFamily: "Newsreader, serif"
@@ -78,15 +99,65 @@ typography:
     lineHeight: 1
   mobileDisplay:
     fontFamily: "Newsreader, serif"
-    fontSize: "clamp(2.5rem, 15vw, 4.4rem)"
+    fontSize: "clamp(2.5rem, 13.5vw, 4rem)"
     fontWeight: 500
-    lineHeight: 0.96
+    lineHeight: 0.98
     letterSpacing: "-0.035em"
+  sectionTitle:
+    fontFamily: "Newsreader, serif"
+    fontSize: "1.75rem"
+    fontWeight: 600
+    lineHeight: 1.1
+    letterSpacing: "-0.025em"
+  panelTitle:
+    fontFamily: "Newsreader, serif"
+    fontSize: "1.5rem"
+    fontWeight: 600
+    lineHeight: 1.15
+    letterSpacing: "-0.02em"
+  cardTitle:
+    fontFamily: "Newsreader, serif"
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.2
+  lead:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 400
+    lineHeight: 1.55
+  ui:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 600
+    lineHeight: 1.5
+  small:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 500
+    lineHeight: 1.5
+  eyebrow:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "0.07em"
+  gaugeValue:
+    fontFamily: "Newsreader, serif"
+    fontSize: "2.6rem"
+    fontWeight: 500
+    lineHeight: 1
+  tabBar:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "0.6875rem"
+    fontWeight: 600
+    lineHeight: 1.2
 rounded:
-  compact: "6px"
+  hairline: "2px"
+  mark: "4px"
   field: "8px"
   control: "10px"
   panel: "14px"
+  sheet: "20px"
   pill: "999px"
 spacing:
   xs: "4px"
@@ -145,7 +216,7 @@ The interface earns confidence through hierarchy and traceability. Assumptions l
 
 - Cotton-paper materiality over a faint 32px ledger grid.
 - Newsreader for consequential statements; DM Sans for controls, labels, and explanation.
-- Evergreen is the structural ink, rust marks buying and the current verdict, and sage marks renting.
+- Evergreen is the structural ink, rust marks buying and the current verdict, and teal marks renting.
 - Fine rules and tonal layering organize dense financial content before shadow does.
 - One responsive narrative: adjust, decide, inspect, reconcile, and save.
 
@@ -160,7 +231,7 @@ The palette reads like annotated closing documents: warm paper, evergreen ink, o
 
 ### Secondary
 
-- **Ledger Sage:** The comparison voice for rent-series charts, dashed legend samples, hover borders, scrollbars, and rent-favoring sensitivity cells.
+- **Ledger Teal:** The comparison voice for rent-series charts, dashed legend samples, the Rent folio tab and sliders, and rent-favoring sensitivity cells.
 
 ### Neutral
 
@@ -171,11 +242,15 @@ The palette reads like annotated closing documents: warm paper, evergreen ink, o
 - **Ledger Rule:** Hairline separators, borders, grids, and table row rules.
 - **Night Paper Set:** Night canvas, paper, pressed paper, ink, annotation, and rule tokens remap the same semantic roles rather than inventing a second visual identity.
 
-**The Two-Ink Rule.** Rust always means the buy/current-verdict side; sage always means the rent/comparison side. Never swap them between charts, legends, tables, or sensitivity views.
+**The Two-Ink Rule.** Rust always means the buy/current-verdict side; teal always means the rent/comparison side. Never swap them between charts, legends, tables, or sensitivity views.
 
 **The Paper, Not White Rule.** Product surfaces use the paper tokens. Pure white is reserved for translucent decorative effects and must not become the default dashboard background.
 
-**The Meaning Beyond Hue Rule.** Color is never the only comparison cue: rent lines are dashed, legends are labeled, heatmap cells include signed values and winner titles, and active controls expose selected state.
+**The Meaning Beyond Hue Rule.** Color is never the only comparison cue: rent lines are dashed, series are labeled at the line end, heatmap cells carry a Home or Key icon plus a signed value, and active controls expose selected state.
+
+**The Validated Marks Rule.** Chart marks use `closing-rust` / `ledger-teal` (light) and `night-rust` / `night-teal` (dark). These pairs pass the dataviz validator: lightness band, chroma floor, color-vision-deficiency separation ΔE ≥ 8, and 3:1 contrast on the paper surface. Text never wears the mark color; it uses `ledger-teal-ink` / `night-teal-ink`, which meet 4.5:1. The earlier muted sage failed the chroma floor (read as gray) and was retired.
+
+**The Motion Budget.** Motion confirms state and never decorates. Interactive feedback is 120ms ease-out (press scale 0.97, hover tint); structure changes (segmented thumb, switch, disclosure chevron, sheet) are 220-320ms on an ease-out-quint curve. Numbers count to their new value over about 500ms. Charts crossfade when the view changes and never redraw on input edits. Nothing loops or bounces, and `prefers-reduced-motion` removes all of it.
 
 ## Typography
 
