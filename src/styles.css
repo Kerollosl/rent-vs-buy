@@ -1171,6 +1171,32 @@ tr:hover td {
   }
 }
 
+/* Refined folio: warm surfaces, clear chart keys, and tactile controls. */
+:root { --paper: #fbf9f3; --paper-deep: #f0ede4; --line: #d7d4c9; --rust: #a34730; --sage: #477568; --shadow: 0 12px 36px rgba(39, 53, 45, .09); --radius: 16px; }
+[data-theme="dark"] { --paper: #1c2723; --paper-deep: #26352e; --line: #41524a; --rust: #ef9b7e; --sage: #a4d2c1; --shadow: 0 12px 36px rgba(0, 0, 0, .22); }
+.workspace { gap: 24px; }
+.verdict-sheet { background: linear-gradient(145deg, var(--paper), color-mix(in srgb, var(--sage-soft) 38%, var(--paper))); }
+.verdict-title { text-wrap: balance; margin-top: 8px; }
+.strategy-summary:first-child .strategy-number { color: var(--rust); }
+.strategy-summary + .strategy-summary .strategy-number { color: var(--sage); }
+.section-heading h2, .model-notes h2 { letter-spacing: -.025em; }
+.section-heading p { max-width: 65ch; line-height: 1.5; }
+.icon-button, .quiet-button, .primary-button, .chip, .view-tab, .section-nav button, summary { transition: transform 180ms cubic-bezier(.2, 1.35, .4, 1), background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+@media (hover: hover) { .icon-button:hover, .quiet-button:hover, .primary-button:hover, .chip:hover, .view-tab:hover { transform: translateY(-2px); border-color: var(--sage); } }
+.icon-button:active, .quiet-button:active, .primary-button:active, .chip:active, .view-tab:active { transform: scale(.96); }
+.mobile-assumptions summary svg, .advanced summary svg { transition: transform 220ms cubic-bezier(.2, 1.35, .4, 1); }
+.mobile-assumptions[open] > summary svg { transform: rotate(180deg); }
+.chart-legend { flex-wrap: wrap; }
+.legend-swatch { display: inline-block; flex: none; width: 24px; height: 0; border-top: 3px solid var(--rust); }
+.legend-swatch.sage-dash { border-color: var(--sage); border-top-style: dashed; }
+.legend-swatch.ink-line { border-color: var(--ink-soft); border-top-width: 2px; }
+.legend-swatch.rust-bar, .legend-swatch.sage-bar { width: 12px; height: 12px; border: 0; border-radius: 3px; background: var(--rust); }
+.legend-swatch.sage-bar { background: var(--sage); }
+.chart-year-values { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 32px; padding: 18px 26px; background: var(--paper-deep); border-radius: 0 0 var(--radius) var(--radius); }
+.chart-year-label { color: var(--ink-soft); font-size: .8rem; font-weight: 600; }
+.chart-year-values .metric-value { font-size: 1rem; }
+@media (max-width: 700px) { .workspace { gap: 16px; } .chart-year-values { padding: 16px 18px; gap: 14px 24px; } .chart-year-label { width: 100%; } }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

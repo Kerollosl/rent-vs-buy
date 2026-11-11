@@ -129,6 +129,17 @@ const CHART_TABS: Array<{ id: ChartView; label: string }> = [
   { id: 'advantage', label: 'Advantage' },
 ]
 
+const CHART_DETAILS: Record<ChartView, { description: string; series: Array<{ label: string; key: keyof YearResult; swatch: string }> }> = {
+  netWorth: { description: 'Net worth over time, including sale-ready home equity and investments.', series: [{ label: 'Buy + invest', key: 'ownerNetWorth', swatch: 'rust-line' }, { label: 'Rent + invest', key: 'renterNetWorth', swatch: 'sage-dash' }] },
+  homeDebt: { description: 'The difference between home value and mortgage balance is gross equity.', series: [{ label: 'Home value', key: 'homeValue', swatch: 'rust-line' }, { label: 'Mortgage balance', key: 'mortgageBalance', swatch: 'ink-line' }] },
+  equity: { description: 'Home value minus mortgage balance, before selling costs and taxes.', series: [{ label: 'Gross equity', key: 'grossHomeEquity', swatch: 'rust-line' }] },
+  portfolios: { description: 'Investments held outside the home for each strategy.', series: [{ label: 'Owner portfolio', key: 'ownerInvestmentPortfolio', swatch: 'rust-line' }, { label: 'Renter portfolio', key: 'renterInvestmentPortfolio', swatch: 'sage-dash' }] },
+  annualCosts: { description: 'Annual housing cash outflow, including mortgage principal for the owner.', series: [{ label: 'Owner cash cost', key: 'ownerHousingCost', swatch: 'rust-bar' }, { label: 'Renter cash cost', key: 'renterHousingCost', swatch: 'sage-bar' }] },
+  unrecoverable: { description: 'Cumulative housing expenses that do not become home equity.', series: [{ label: 'Owner unrecoverable', key: 'cumulativeOwnerUnrecoverableCost', swatch: 'rust-line' }, { label: 'Renter unrecoverable', key: 'cumulativeRenterHousingCost', swatch: 'sage-dash' }] },
+  principalInterest: { description: 'Annual mortgage payments split between principal and interest.', series: [{ label: 'Principal', key: 'principalPaid', swatch: 'sage-bar' }, { label: 'Interest', key: 'interestPaid', swatch: 'rust-bar' }] },
+  advantage: { description: 'Buy net worth minus rent net worth. Below zero favors renting.', series: [{ label: 'Buy minus rent', key: 'netWorthDifference', swatch: 'rust-line' }] },
+}
+
 const HORIZONS = [5, 10, 15, 20, 25, 30, 40]
 const STOCK_RATES = [0.04, 0.06, 0.08, 0.1, 0.12]
 const HOME_RATES = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
@@ -393,23 +404,10 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; value?: number; color?: string; payload?: YearResult }>; label?: number }) {
   if (!active || !payload?.length) return null
-  const year = payload[0]?.payload
   return (
     <div className="custom-tooltip">
       <p className="tooltip-year">Year {label}</p>
-      {payload.map((entry) => (
-        <div className="tooltip-row" key={entry.name}>
-          <span style={{ color: entry.color }}>{entry.name}</span>
-          <strong>{money.format(entry.value ?? 0)}</strong>
-        </div>
-      ))}
-      {year && <div className="tooltip-detail">
-        <div className="tooltip-row"><span>Owner equity after sale</span><strong>{money.format(year.realizableHomeEquity)}</strong></div>
-        <div className="tooltip-row"><span>Owner portfolio</span><strong>{money.format(year.ownerInvestmentPortfolio)}</strong></div>
-        <div className="tooltip-row"><span>Renter portfolio</span><strong>{money.format(year.renterInvestmentPortfolio)}</strong></div>
-        <div className="tooltip-row"><span>Owner / renter cash</span><strong>{compactMoney.format(year.ownerHousingCost)} / {compactMoney.format(year.renterHousingCost)}</strong></div>
-        <div className="tooltip-row"><span>Net-worth spread</span><strong>{money.format(year.netWorthDifference)}</strong></div>
-      </div>}
+      {payload.map((entry) => <div className="tooltip-row" key={entry.name}><span>{entry.name}</span><strong>{money.format(entry.value ?? 0)}</strong></div>)}
     </div>
   )
 }
@@ -428,7 +426,7 @@ function ComparisonChart({
   height?: number
 }) {
   const chartSize = { width, height }
-  const axis = <YAxis tickFormatter={(value: number) => compactMoney.format(value)} tick={{ fill: 'var(--ink-soft)', fontSize: 12 }} axisLine={false} tickLine={false} width={70} />
+  const axis = <YAxis domain={['auto', 'auto']} tickFormatter={(value: number) => compactMoney.format(value)} tick={{ fill: 'var(--ink-soft)', fontSize: 12 }} axisLine={false} tickLine={false} width={70} />
   const common = <>
     <CartesianGrid vertical={false} stroke="var(--line)" strokeDasharray="2 5" />
     <XAxis dataKey="year" tick={{ fill: 'var(--ink-soft)', fontSize: 12 }} axisLine={false} tickLine={false} minTickGap={12} />
@@ -720,7 +718,7 @@ export default function App() {
 
           <section className="chart-sheet" aria-labelledby="chart-title">
             <div className="section-heading">
-              <div><h2 id="chart-title">The wealth path</h2><p>Hover for exact values. The dashed line always represents renting.</p></div>
+              <div><h2 id="chart-title">The wealth path</h2><p>{CHART_DETAILS[chartView].description}</p></div>
               <label className="metric-label">Inspect year <select className="scenario-select" value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>{result.years.map((year) => <option key={year.year} value={year.year}>{year.year}</option>)}</select></label>
             </div>
             <div className="view-tabs" role="tablist" aria-label="Chart views">
@@ -733,14 +731,12 @@ export default function App() {
                 </ResponsiveContainer>
               </div>
               <div className="chart-legend">
-                {({ netWorth: ['Buy strategy', 'Rent strategy'], homeDebt: ['Home value', 'Mortgage balance'], equity: ['Gross home equity', ''], portfolios: ['Owner portfolio', 'Renter portfolio'], annualCosts: ['Owner cash cost', 'Renter cash cost'], unrecoverable: ['Owner unrecoverable', 'Renter unrecoverable'], principalInterest: ['Principal', 'Interest'], advantage: ['Buy-minus-rent advantage', ''] } as Record<ChartView, string[]>)[chartView].filter(Boolean).map((label, index) => <span className="legend-item" key={label}><span className={`legend-line ${index === 0 ? 'buy' : 'rent'}`} />{label}</span>)}
+                {CHART_DETAILS[chartView].series.map((series) => <span className="legend-item" key={series.key}><span className={`legend-swatch ${series.swatch}`} aria-hidden="true" />{series.label}</span>)}
               </div>
             </div>
-            <div className="selected-year-strip">
-              <div className="year-fact"><Metric label={`Owner cost · year ${inspected.year}`} value={money.format(inspected.ownerHousingCost)} /></div>
-              <div className="year-fact"><Metric label={`Renter cost · year ${inspected.year}`} value={money.format(inspected.renterHousingCost)} /></div>
-              <div className="year-fact"><Metric label="Cheaper side invests" value={money.format(inspected.ownerCashFlowDifferenceInvested + inspected.renterCashFlowDifferenceInvested)} /></div>
-              <div className="year-fact"><Metric label="Net-worth difference" value={money.format(inspected.netWorthDifference)} /></div>
+            <div className="chart-year-values" aria-live="polite">
+              <span className="chart-year-label">Year {inspected.year}</span>
+              {CHART_DETAILS[chartView].series.map((series) => <div className="year-fact" key={series.key}><Metric label={series.label} value={money.format(inspected[series.key] as number)} /></div>)}
             </div>
           </section>
 
@@ -752,7 +748,7 @@ export default function App() {
             </div>
             <div className="heatmap-wrap">
               <div className="heatmap" style={{ gridTemplateColumns: `76px repeat(${STOCK_RATES.length}, minmax(80px, 1fr))` }}>
-                <div className="heat-label">Home / Stock</div>
+                <div className="heat-label" title="Home appreciation / stock return">Home / Stock</div>
                 {STOCK_RATES.map((rate) => <div className="heat-label" key={rate}>{formatPercent(rate)}</div>)}
                 {sensitivity.cells.flatMap((row, rowIndex) => [
                   <div className="heat-label" key={`label-${rowIndex}`}>{formatPercent(HOME_RATES[rowIndex])}</div>,
