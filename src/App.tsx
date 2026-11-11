@@ -304,7 +304,7 @@ function AssumptionFolio({
     <aside className="assumptions" aria-label="Scenario assumptions">
       <div className="folio-head">
         <h2>Assumptions</h2>
-        <p>Every change recalculates the full timeline.</p>
+        <p>Results update as you edit.</p>
         <div className="folio-tabs" role="tablist" aria-label="Assumption groups">
           {(['buy', 'rent'] as FolioTab[]).map((item) => (
             <button
@@ -390,7 +390,7 @@ function AssumptionFolio({
               <input type="checkbox" checked={includeClosingCash} onChange={(event) => onIncludeClosingCash(event.target.checked)} />
               <span><strong>Invest avoided closing cash</strong><small>Add buyer closing costs to the renter’s starting portfolio.</small></span>
             </label>
-            <p className="method-note">Volatility and general inflation are stored for the future stochastic and real-dollar views. The current primary result remains a deterministic nominal expected-value comparison.</p>
+            <p className="method-note">The main comparison is deterministic and nominal. Inflation adjusts the stress test; volatility is not yet modeled.</p>
           </div>
         </details>
       </div>
@@ -704,7 +704,7 @@ export default function App() {
 
           <section className="summary-sheet" aria-label="Timeline controls">
             <div className="section-heading">
-              <div><h2>Set the decision horizon</h2><p>Year 0 includes the renter’s invested down payment and buyer closing cash.</p></div>
+              <div><h2>Decision horizon</h2><p>Year 0 includes the renter’s invested purchase cash.</p></div>
               <div className="horizon-row" aria-label="Horizon in years">
                 {HORIZONS.map((year) => <button type="button" key={year} className={`chip ${inputs.horizonYears === year ? 'active' : ''}`} onClick={() => updateInput('horizonYears', year)}>{year}y</button>)}
               </div>
@@ -743,7 +743,7 @@ export default function App() {
           <section className="sensitivity-sheet" aria-labelledby="sensitivity-title">
             <div className="sensitivity-copy">
               <h2 id="sensitivity-title">Where the answer flips</h2>
-              <p>Each cell shows the buy-minus-rent net-worth advantage after {inputs.horizonYears} years. Rust favors buying; sage favors renting.</p>
+              <p>Buy minus rent after {inputs.horizonYears} years. Positive favors buying; negative favors renting.</p>
               <div className="break-even"><span className="metric-label">Approximate break-even stock return</span><strong>{breakEven === null ? 'Outside range' : formatPercent(breakEven)}</strong></div>
             </div>
             <div className="heatmap-wrap">
@@ -763,7 +763,7 @@ export default function App() {
 
           <section className="table-sheet" aria-labelledby="table-title">
             <div className="section-heading">
-              <div><h2 id="table-title">Every year, reconciled</h2><p>Principal builds equity; interest, rent, tax, insurance, HOA, and maintenance are expenses.</p></div>
+              <div><h2 id="table-title">Year-by-year breakdown</h2><p>Principal builds equity; interest, rent, tax, insurance, HOA, and maintenance are expenses.</p></div>
               <button className="quiet-button" type="button" onClick={() => { try { downloadText('buy-vs-rent.csv', csvForYears(result.years), 'text/csv') } catch { setToast('CSV export failed. Try another browser or export the scenario configuration.') } }}><Download size={15} />Export CSV</button>
             </div>
             <details>
@@ -780,7 +780,7 @@ export default function App() {
           <section className="scenario-sheet" aria-labelledby="scenario-title">
             <div className="scenario-layout">
               <div>
-                <div className="section-heading" style={{ padding: 0, border: 0 }}><div><h2 id="scenario-title">Your scenario folio</h2><p>Saved only in this browser.</p></div></div>
+                <div className="section-heading" style={{ padding: 0, border: 0 }}><div><h2 id="scenario-title">Saved scenarios</h2><p>Saved only in this browser.</p></div></div>
                 <div className="button-row" style={{ marginTop: 16 }}>
                   <input className="scenario-input" value={scenarioName} onChange={(event) => setScenarioName(event.target.value)} aria-label="Scenario name" />
                   <button className="primary-button" type="button" onClick={saveScenario}><BookmarkPlus size={15} />Save</button>
@@ -801,24 +801,24 @@ export default function App() {
                   } catch { setToast('Could not import this file. Choose a valid Rent vs Buy JSON configuration.') }
                 }} /></label>
                 <div className="scenario-list">
-                  {saved.length === 0 && <p className="method-note">No saved scenarios yet. Save the current assumptions to compare alternatives.</p>}
+                  {saved.length === 0 && <p className="method-note">Save a scenario to compare it later.</p>}
                   {saved.map((scenario) => <div className="scenario-row" key={scenario.id}><div><strong>{scenario.name}</strong><span>{new Date(scenario.savedAt).toLocaleDateString()}</span></div><div className="button-row"><button className="quiet-button" type="button" onClick={() => { setInputs(scenario.inputs); setToast(`${scenario.name} loaded`) }}>Load</button><button className="icon-button" type="button" aria-label={`Delete ${scenario.name}`} onClick={() => commitSaved(saved.filter((item) => item.id !== scenario.id), `${scenario.name} removed`)}><Trash2 size={14} /></button></div></div>)}
                 </div>
               </div>
               <div>
-                <div className="section-heading" style={{ padding: 0, border: 0 }}><div><h2>Compare two folios</h2><p>Compares the best strategy in each saved scenario.</p></div></div>
+                <div className="section-heading" style={{ padding: 0, border: 0 }}><div><h2>Compare scenarios</h2><p>Compares the best strategy in each saved scenario.</p></div></div>
                 <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
                   <select className="scenario-select" value={compareA} onChange={(event) => setCompareA(event.target.value)}><option value="current">Current scenario</option>{saved.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name}</option>)}</select>
                   <select className="scenario-select" value={compareB} onChange={(event) => setCompareB(event.target.value)}><option value="">Choose a saved scenario</option>{saved.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name}</option>)}</select>
                 </div>
-                <div className="compare-result"><span className="metric-label">First folio versus second</span><strong>{comparison?.horizonMismatch ? 'Match horizons first' : comparison ? money.format(comparison.difference) : 'Select two scenarios'}</strong>{comparison && <p className="method-note">{comparison.horizonMismatch ? `These folios end at years ${comparison.horizonA} and ${comparison.horizonB}; comparing final dollar values would mislead.` : `Best-strategy outcomes at year ${comparison.horizonA}: ${money.format(comparison.aBest)} and ${money.format(comparison.bBest)}.`}</p>}</div>
+                <div className="compare-result"><span className="metric-label">First scenario minus second</span><strong>{comparison?.horizonMismatch ? 'Match horizons first' : comparison ? money.format(comparison.difference) : 'Select two scenarios'}</strong>{comparison && <p className="method-note">{comparison.horizonMismatch ? `These scenarios end at years ${comparison.horizonA} and ${comparison.horizonB}; comparing final dollar values would mislead.` : `Best-strategy outcomes at year ${comparison.horizonA}: ${money.format(comparison.aBest)} and ${money.format(comparison.bBest)}.`}</p>}</div>
                 <button className="quiet-button" style={{ marginTop: 12 }} type="button" onClick={() => { try { downloadText('equity-fold-scenario.json', JSON.stringify(inputs, null, 2), 'application/json') } catch { setToast('Export failed. Try another browser or copy the scenario link.') } }}><Download size={15} />Export configuration</button>
               </div>
             </div>
           </section>
 
           <section className="planning-sheet model-notes" aria-label="How to read this model">
-            <h2>Know what is behind the numbers.</h2>
+            <h2>How it works</h2>
             <details><summary>What counts as wealth?</summary><p>The owner’s portfolio plus home equity after mortgage payoff, selling costs, and entered home-gains tax. The renter’s wealth is the investment portfolio. Principal payments build equity; they also use monthly cash.</p></details>
             <details><summary>How is the comparison kept fair?</summary><p>Both strategies receive the same base investment contributions. The cheaper housing strategy invests the annual cost difference at year-end. By default, renters invest the cash otherwise spent on a down payment and closing. Custom starting portfolios can create unequal starting wealth.</p></details>
             <details><summary>What can change the answer?</summary><p>Returns, rent increases, repairs, transaction costs, and how long you stay. Stress tests change one assumption at a time and do not assign probabilities. Tax benefits are manual estimates; refinancing uses the remaining original loan term and does not include refinance fees.</p></details>
