@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   BookmarkPlus, Calendar, ChartLine, Coins, Download, FileSpreadsheet,
   Gauge, Home, Info, KeyRound, Landmark, Moon, PiggyBank, Percent, Receipt, Share2,
@@ -152,6 +152,7 @@ export default function App() {
   const narrow = useMediaQuery('(max-width: 980px)')
   const reduced = usePrefersReducedMotion()
   const sheetRef = useRef<HTMLDialogElement>(null)
+  const editButtonRef = useRef<HTMLButtonElement>(null)
 
   const result = useMemo(() => calculateScenario(inputs), [inputs])
   const final = result.years.at(-1)!
@@ -163,8 +164,8 @@ export default function App() {
   const stressOthers = variants.slice(1)
   const holds = stressOthers.filter((variant) => variant.summary.winner === winner).length
   const active = useScrollSpy(SECTIONS.map((section) => section.id))
-  const buyDisplay = useAnimatedNumber(final.ownerNetWorth)
-  const rentDisplay = useAnimatedNumber(final.renterNetWorth)
+  const buyDisplay = useAnimatedNumber(final.ownerNetWorth, 280)
+  const rentDisplay = useAnimatedNumber(final.renterNetWorth, 280)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -186,7 +187,11 @@ export default function App() {
     if (!dialog) return
     if (sheetOpen && narrow && !dialog.open) {
       dialog.showModal()
-      dialog.querySelector<HTMLElement>('.sheet-scroll')?.focus({ preventScroll: true })
+      const scroll = dialog.querySelector<HTMLElement>('.sheet-scroll')
+      if (scroll) {
+        scroll.scrollTop = 0
+        scroll.focus({ preventScroll: true })
+      }
     }
     if ((!sheetOpen || !narrow) && dialog.open) dialog.close()
   }, [sheetOpen, narrow])
@@ -313,7 +318,7 @@ export default function App() {
           <span className="brand-name">Rent vs Buy</span>
         </div>
 
-        <nav className="nav" aria-label="Sections">
+        <nav className="nav" aria-label="Sections" style={{ '--active-tab': SECTIONS.findIndex(({ id }) => id === active) } as CSSProperties}>
           {SECTIONS.map(({ id, label, short, Icon }) => (
             <button type="button" key={id} className={active === id ? 'active' : ''} aria-current={active === id ? 'true' : undefined} onClick={() => goTo(id)}>
               <Icon size={18} aria-hidden="true" />
@@ -324,7 +329,7 @@ export default function App() {
         </nav>
 
         <div className="top-actions">
-          <button className="button ghost" type="button" onClick={copyScenario}><Share2 size={16} aria-hidden="true" /><span>Share link</span></button>
+          <button className="button ghost" type="button" aria-label="Share link" onClick={copyScenario}><Share2 size={16} aria-hidden="true" /><span>Share link</span></button>
           <button className="icon-button" type="button" title={`Use ${theme === 'light' ? 'dark' : 'light'} theme`} aria-label={`Use ${theme === 'light' ? 'dark' : 'light'} theme`} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={17} aria-hidden="true" /> : <Sun size={17} aria-hidden="true" />}
           </button>
@@ -335,9 +340,9 @@ export default function App() {
         {!narrow && <aside className="aside" aria-label="Assumptions">{folio}</aside>}
 
         <div className="workspace">
-          <section className="sheet verdict-sheet" id="overview" aria-labelledby="verdict-title">
-            <h1 className="verdict-title" id="verdict-title" key={`${winner}-${Math.round(result.summary.advantage / 1000)}`}>
-              {winner === 'tie' ? <>{winnerLabel} <em>finish even.</em></> : <>{winnerLabel} could leave you <em>{compactMoney.format(result.summary.advantage)} ahead.</em></>}
+          <section className="sheet verdict-sheet" id="overview" aria-labelledby="verdict-title" data-winner={winner}>
+            <h1 className="verdict-title" id="verdict-title">
+              <span key={winner}>{winner === 'tie' ? <>{winnerLabel} <em>finish even.</em></> : <>{winnerLabel} could leave you <em>{compactMoney.format(result.summary.advantage)} ahead.</em></>}</span>
             </h1>
             <p className="verdict-copy">
               {winner === 'tie'
@@ -345,7 +350,7 @@ export default function App() {
                 : <><b>{formatPercent(result.summary.percentageAdvantage)} more net worth</b> than {loserLabel} at year {inputs.horizonYears}, after selling costs. {result.summary.crossoverYear ? `The lead first changes in year ${result.summary.crossoverYear}.` : 'The lead does not change within this horizon.'}</>}
             </p>
 
-            {narrow && <button className="adjust-bar" type="button" onClick={() => setSheetOpen(true)}>
+            {narrow && <button className="adjust-bar" type="button" ref={editButtonRef} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
               <SlidersHorizontal size={18} aria-hidden="true" />
               <span><b>Edit your numbers</b><small>{money.format(inputs.homePrice)} home · {money.format(inputs.initialMonthlyRent)}/mo rent</small></span>
             </button>}
@@ -489,17 +494,20 @@ export default function App() {
         ref={sheetRef}
         className="sheet-dialog"
         aria-label="Assumptions"
-        onClose={() => setSheetOpen(false)}
+        onClose={() => {
+          setSheetOpen(false)
+          editButtonRef.current?.focus({ preventScroll: true })
+        }}
         onClick={(event) => { if (event.target === event.currentTarget) setSheetOpen(false) }}
       >
-        {narrow && sheetOpen && (
+        {narrow && (
           <>
             <div className="sheet-grab" aria-hidden="true" />
             <div className="sheet-live">
               <span className={`adjust-live ${winner}`}>{winner === 'tie' ? 'Even' : `${winner === 'buy' ? 'Buying' : 'Renting'} ahead by ${compactMoney.format(result.summary.advantage)}`}</span>
               <button type="button" className="button primary" onClick={() => setSheetOpen(false)}><X size={16} aria-hidden="true" />Done</button>
             </div>
-            <div className="sheet-scroll" tabIndex={-1} autoFocus role="region" aria-label="Assumption controls">{folio}</div>
+            <div className="sheet-scroll" tabIndex={-1} role="region" aria-label="Assumption controls">{folio}</div>
           </>
         )}
       </dialog>
