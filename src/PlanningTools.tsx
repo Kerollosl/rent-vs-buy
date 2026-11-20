@@ -24,7 +24,7 @@ export default function Affordability({ result }: { result: CalculationResult })
         <span className="afford-icon" aria-hidden="true"><Wallet size={20} /></span>
         <span className="afford-title">
           <h2 id="budget-title">Can you afford it?</h2>
-          <span>Optional. Check monthly room and purchase cash against your own budget. Stays in this tab.</span>
+          <span>Compare monthly payments and the cash you’d need to buy. Your budget stays in this tab.</span>
         </span>
         <ChevronDown className="chevron" size={20} aria-hidden="true" />
       </summary>
@@ -82,7 +82,7 @@ export default function Affordability({ result }: { result: CalculationResult })
               </dl>
             </>
           ) : (
-            <p className="budget-empty">Add your income, spending and savings on the left to see how each option fits your month.</p>
+            <p className="budget-empty">Add your income, spending and savings to see how each option fits your budget.</p>
           )}
           <details className="budget-method">
             <summary>How this is calculated <ChevronDown size={15} aria-hidden="true" /></summary>

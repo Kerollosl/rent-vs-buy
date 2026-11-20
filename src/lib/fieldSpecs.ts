@@ -63,4 +63,4 @@ export const ADVANCED_FIELDS: FieldSpec[] = [
   { key: 'refinanceInterestRate', label: 'Refinance rate', min: 0, max: 0.14, step: 0.0005, format: 'percent', help: 'New rate applied to the remaining original mortgage term.' },
 ]
 
-export const HORIZONS = [5, 10, 15, 20, 25, 30, 40]
+export const HORIZONS = Array.from({ length: 40 }, (_, index) => index + 1)

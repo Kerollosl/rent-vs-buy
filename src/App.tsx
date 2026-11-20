@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   BookmarkPlus, Calendar, ChartLine, Coins, Download, FileSpreadsheet,
   Gauge, Home, Info, KeyRound, Landmark, Moon, PiggyBank, Percent, Receipt, Share2,
-  ShieldAlert, ShieldCheck, SlidersHorizontal, Sun, Trash2, TrendingUp, Trophy, Upload, Wallet, Wrench, X,
+  SlidersHorizontal, Sun, Trash2, TrendingUp, Trophy, Upload, Wallet, Wrench, X,
   Bookmark, ArrowLeftRight,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -160,9 +160,6 @@ export default function App() {
   const breakEven = useMemo(() => findBreakEvenStockReturn(inputs, { minRate: 0, maxRate: 0.2, dollarTolerance: 50 }), [inputs])
   const winner = result.summary.winner
   const winnerLabel = winner === 'buy' ? 'Buying' : winner === 'rent' ? 'Renting' : 'Both strategies'
-  const loserLabel = winner === 'buy' ? 'renting' : 'buying'
-  const stressOthers = variants.slice(1)
-  const holds = stressOthers.filter((variant) => variant.summary.winner === winner).length
   const active = useScrollSpy(SECTIONS.map((section) => section.id))
   const buyDisplay = useAnimatedNumber(final.ownerNetWorth, 280)
   const rentDisplay = useAnimatedNumber(final.renterNetWorth, 280)
@@ -283,25 +280,24 @@ export default function App() {
   const ownerMetrics: Array<[string, string, LucideIcon]> = [
     ['Home value', money.format(final.homeValue), Home],
     ['Mortgage left', money.format(final.mortgageBalance), Landmark],
-    ['Sale-ready equity', money.format(final.realizableHomeEquity), PiggyBank],
-    ['Outside portfolio', money.format(final.ownerInvestmentPortfolio), TrendingUp],
+    ['Equity after sale', money.format(final.realizableHomeEquity), PiggyBank],
+    ['Buyer’s investments', money.format(final.ownerInvestmentPortfolio), TrendingUp],
     ['Interest paid', money.format(final.cumulativeInterestPaid), Percent],
     ['Property taxes', money.format(final.cumulativePropertyTaxes), Receipt],
     ['Maintenance', money.format(final.cumulativeMaintenance), Wrench],
-    ['Monthly P&I', money.format(result.summary.mortgagePaymentMonthly), Calendar],
+    ['Mortgage principal and interest per month', money.format(result.summary.mortgagePaymentMonthly), Calendar],
   ]
   const renterMetrics: Array<[string, string, LucideIcon]> = [
-    ['Portfolio', money.format(final.renterInvestmentPortfolio), TrendingUp],
+    ['Renter’s investments', money.format(final.renterInvestmentPortfolio), TrendingUp],
     ['Rent paid', money.format(final.cumulativeRentPaid), KeyRound],
     ['Contributions', money.format(final.cumulativeRenterInvestmentContributions + result.summary.initialRenterInvestment), Coins],
     ['Investment gains', money.format(final.renterInvestmentGains), Trophy],
     ['Year-one rent', money.format(inputs.initialMonthlyRent * 12), Calendar],
-    ['Year-final rent', money.format(final.rent), Calendar],
+    ['Rent in final year', money.format(final.rent), Calendar],
     ['Initial investment', money.format(result.summary.initialRenterInvestment), PiggyBank],
     ['Effective return', formatPercent(result.summary.effectiveStockReturnRate), Percent],
   ]
 
-  const ShieldIcon = holds >= 3 ? ShieldCheck : ShieldAlert
   const folio = (
     <AssumptionFolio
       inputs={inputs} tab={folioTab} downPaymentMode={downPaymentMode} maintenanceMode={maintenanceMode} includeClosingCash={includeClosingCash}
@@ -344,81 +340,76 @@ export default function App() {
             <h1 className="verdict-title" id="verdict-title">
               <span key={winner}>{winner === 'tie' ? <>{winnerLabel} <em>finish even.</em></> : <>{winnerLabel} could leave you <em>{compactMoney.format(result.summary.advantage)} ahead.</em></>}</span>
             </h1>
-            <p className="verdict-copy">
-              {winner === 'tie'
-                ? `The modeled net worth is equal at year ${inputs.horizonYears}, after selling costs.`
-                : <><b>{formatPercent(result.summary.percentageAdvantage)} more net worth</b> than {loserLabel} at year {inputs.horizonYears}, after selling costs. {result.summary.crossoverYear ? `The lead first changes in year ${result.summary.crossoverYear}.` : 'The lead does not change within this horizon.'}</>}
-            </p>
+            <p className="verdict-copy">Projected after {inputs.horizonYears} {inputs.horizonYears === 1 ? 'year' : 'years'}, accounting for selling costs and investing any housing savings.</p>
 
             {narrow && <button className="adjust-bar" type="button" ref={editButtonRef} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
               <SlidersHorizontal size={18} aria-hidden="true" />
               <span><b>Edit your numbers</b><small>{money.format(inputs.homePrice)} home · {money.format(inputs.initialMonthlyRent)}/mo rent</small></span>
             </button>}
 
-            <div className="verdict-meta">
-              <div className="horizon" role="group" aria-label="Compare at year">
-                <span className="eyebrow">Years you’ll stay</span>
-                {HORIZONS.map((year) => (
-                  <button type="button" key={year} className={`chip ${inputs.horizonYears === year ? 'active' : ''}`} aria-pressed={inputs.horizonYears === year} onClick={() => updateInput('horizonYears', year)}>{year}</button>
-                ))}
-              </div>
-              {winner !== 'tie' && (
-                <p className={`resilience r${holds}`} title="Counts the stress tests below where the winner stays the same.">
-                  <ShieldIcon size={17} aria-hidden="true" />
-                  <span className="pips" aria-hidden="true">{stressOthers.map((variant, index) => <i key={variant.name} className={variant.summary.winner === winner ? 'on' : ''} data-i={index} />)}</span>
-                  <span>Holds in <b>{holds} of {stressOthers.length}</b> stress tests</span>
-                </p>
-              )}
-            </div>
+            <label className="horizon">
+              <span>How long will you stay?</span>
+              <select className="select" value={inputs.horizonYears} onChange={(event) => {
+                const year = Number(event.target.value)
+                updateInput('horizonYears', year)
+                setSelectedYear(year)
+              }}>
+                {HORIZONS.map((year) => <option key={year} value={year}>{year} {year === 1 ? 'year' : 'years'}</option>)}
+              </select>
+            </label>
 
-            <h2 className="outcome-label">Estimated wealth after {inputs.horizonYears} years</h2>
-            <p className="note">Buying combines investments with what you could keep from selling the home. Renting counts your investments. Each option invests any savings on housing.</p>
+            <h2 className="outcome-label">Estimated wealth</h2>
             <div className="strategy-grid">
               {([
-                ['buy', 'If you buy', Home, buyDisplay, ownerMetrics],
-                ['rent', 'If you rent', KeyRound, rentDisplay, renterMetrics],
-              ] as const).map(([side, title, Icon, amount, metrics]) => (
+                ['buy', 'If you buy', Home, buyDisplay],
+                ['rent', 'If you rent', KeyRound, rentDisplay],
+              ] as const).map(([side, title, Icon, amount]) => (
                 <article className={`strategy ${side} ${winner === side ? 'ahead' : ''}`} key={side}>
-                  <div className="strategy-name">
-                    <span className="strategy-icon" aria-hidden="true"><Icon size={18} /></span>
-                    <h2>{title}</h2>
-                    {winner === side && <span className="pill"><Trophy size={13} aria-hidden="true" />Ahead</span>}
-                  </div>
+                  <h3 className="strategy-name"><Icon size={16} aria-hidden="true" />{title}</h3>
                   <strong className="strategy-number">{money.format(amount)}</strong>
-                  <details className="outcome-detail"><summary>See {side === 'buy' ? 'buying' : 'renting'} breakdown</summary><div className="metric-grid">{metrics.map(([label, value, MetricIcon]) => <Metric key={label} label={label} value={value} Icon={MetricIcon} />)}</div></details>
+                  <p>{side === 'buy' ? 'Equity after sale + investments' : 'Investments'}</p>
                 </article>
               ))}
             </div>
+            <details className="outcome-detail">
+              <summary>See what goes into each total</summary>
+              <div className="outcome-metrics">
+                {([['Buying', ownerMetrics], ['Renting', renterMetrics]] as const).map(([title, metrics]) => (
+                  <div key={title}>
+                    <h3>{title}</h3>
+                    <div className="metric-grid">{metrics.map(([label, value, Icon]) => <Metric key={label} label={label} value={value} Icon={Icon} />)}</div>
+                  </div>
+                ))}
+              </div>
+            </details>
           </section>
 
           <Affordability result={result} />
           <section id="explore" className="explore-section">
             <h2>Explore the numbers</h2>
-            <details className="explore-item"><summary>How does the lead change over time?</summary>
+            <details className="explore-item"><summary>How do buying and renting compare over time?</summary>
               <WealthPath result={result} selectedYear={selectedYear} onYear={setSelectedYear} />
             </details>
-            <details className="explore-item"><summary>When would the other option win?</summary>
-              <FlipMap inputs={inputs} breakEven={breakEven} winner={winner} />
+            <details className="explore-item"><summary>How do home prices and stocks change the result?</summary>
+              <FlipMap inputs={inputs} breakEven={breakEven} />
             </details>
-            <details className="explore-item"><summary>What if my assumptions are wrong?</summary>
+            <details className="explore-item"><summary>Does the result hold up under different assumptions?</summary>
               <StressTest inputs={inputs} result={result} variants={variants} />
             </details>
-          <section className="sheet table-sheet" id="table" aria-labelledby="table-title">
-            <header className="sheet-head">
-              <div><h2 id="table-title">Year-by-year breakdown</h2><p>Principal builds equity; interest, rent, tax, insurance, HOA and maintenance are expenses.</p></div>
-              <button className="button" type="button" onClick={() => { try { downloadText('rent-vs-buy.csv', csvForYears(result.years), 'text/csv') } catch { setToast({ message: 'CSV export failed. Try another browser or export the scenario configuration.' }) } }}><FileSpreadsheet size={16} aria-hidden="true" />Export CSV</button>
-            </header>
-            <details className="table-details">
-              <summary>Open year-by-year table</summary>
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th scope="col">Year</th><th scope="col">Home value</th><th scope="col">Mortgage</th><th scope="col">Sale-ready equity</th><th scope="col">Owner portfolio</th><th scope="col">Owner net worth</th><th scope="col">Owner cost</th><th scope="col">Annual rent</th><th scope="col">Renter contribution</th><th scope="col">Renter portfolio</th><th scope="col">Renter net worth</th><th scope="col">Buy − rent</th></tr></thead>
-                  <tbody>{result.years.map((year) => <tr key={year.year} className={year.year === selectedYear ? 'selected' : ''} aria-selected={year.year === selectedYear}><th scope="row">{year.year}</th><td>{money.format(year.homeValue)}</td><td>{money.format(year.mortgageBalance)}</td><td>{money.format(year.realizableHomeEquity)}</td><td>{money.format(year.ownerInvestmentPortfolio)}</td><td>{money.format(year.ownerNetWorth)}</td><td>{money.format(year.ownerHousingCost)}</td><td>{money.format(year.rent)}</td><td>{money.format(year.renterInvestmentContributions)}</td><td>{money.format(year.renterInvestmentPortfolio)}</td><td>{money.format(year.renterNetWorth)}</td><td className={year.netWorthDifference >= 0 ? 'positive' : 'negative'}>{money.format(year.netWorthDifference)}</td></tr>)}</tbody>
-                </table>
-              </div>
+            <details className="explore-item"><summary>See all the numbers by year</summary>
+              <section className="sheet table-sheet" id="table" aria-labelledby="table-title">
+                <header className="sheet-head">
+                  <div><h2 id="table-title">Year-by-year breakdown</h2><p>Scroll the table to compare costs, equity and investments for each year.</p></div>
+                  <button className="button" type="button" onClick={() => { try { downloadText('rent-vs-buy.csv', csvForYears(result.years), 'text/csv') } catch { setToast({ message: 'CSV export failed. Try another browser or export the scenario configuration.' }) } }}><FileSpreadsheet size={16} aria-hidden="true" />Export CSV</button>
+                </header>
+                <div className="table-wrap" tabIndex={0} role="region" aria-label="Year-by-year data">
+                  <table>
+                    <thead><tr><th scope="col">Year</th><th scope="col">Home value</th><th scope="col">Mortgage</th><th scope="col">Equity after sale</th><th scope="col">Buyer investments</th><th scope="col">Owner net worth</th><th scope="col">Buyer cash outlay</th><th scope="col">Annual rent</th><th scope="col">Renter contribution</th><th scope="col">Renter investments</th><th scope="col">Renter net worth</th><th scope="col">Buy − rent</th></tr></thead>
+                    <tbody>{result.years.map((year) => <tr key={year.year} className={year.year === selectedYear ? 'selected' : ''} aria-selected={year.year === selectedYear}><th scope="row">{year.year}</th><td>{money.format(year.homeValue)}</td><td>{money.format(year.mortgageBalance)}</td><td>{money.format(year.realizableHomeEquity)}</td><td>{money.format(year.ownerInvestmentPortfolio)}</td><td>{money.format(year.ownerNetWorth)}</td><td>{money.format(year.ownerHousingCost)}</td><td>{money.format(year.rent)}</td><td>{money.format(year.renterInvestmentContributions)}</td><td>{money.format(year.renterInvestmentPortfolio)}</td><td>{money.format(year.renterNetWorth)}</td><td className={year.netWorthDifference >= 0 ? 'positive' : 'negative'}>{money.format(year.netWorthDifference)}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              </section>
             </details>
-          </section>
-
           </section>
 
           <section className="sheet saved-sheet" id="saved" aria-labelledby="scenario-title">
