@@ -1,10 +1,10 @@
 import { useId, useState, type CSSProperties } from 'react'
-import { ChevronDown, Home, KeyRound, RotateCcw } from 'lucide-react'
+import { SlidersHorizontal, ChevronDown, Home, KeyRound, RotateCcw } from 'lucide-react'
 import type { CalculatorInputs } from '../lib/calculator'
 import { ADVANCED_FIELDS, BUY_FIELDS, PRESETS, RENT_FIELDS, type FieldSpec } from '../lib/fieldSpecs'
 import InfoTip from './InfoTip'
 
-export type FolioTab = 'buy' | 'rent'
+export type FolioTab = 'basics' | 'buy' | 'rent'
 export type DownPaymentMode = 'dollars' | 'percent'
 export type MaintenanceMode = 'rate' | 'fixed'
 type Change = (key: keyof CalculatorInputs, value: number | undefined) => void
@@ -146,7 +146,7 @@ export default function AssumptionFolio({
   onChange: Change
   onPreset: (name: string) => void
 }) {
-  const fields = tab === 'buy' ? BUY_FIELDS : RENT_FIELDS
+  const fields = tab === 'basics' ? [BUY_FIELDS[0], RENT_FIELDS[0], BUY_FIELDS[1]] : tab === 'buy' ? BUY_FIELDS : RENT_FIELDS
   const downPayment = Number(inputs.downPayment ?? inputs.homePrice * (inputs.downPaymentPercent ?? 0.2))
   const downPaymentShown = downPaymentMode === 'percent' ? Number(((downPayment / inputs.homePrice) * 100).toFixed(2)) : downPayment
   const fixedMaintenance = inputs.maintenanceAnnual ?? inputs.homePrice * inputs.maintenanceRate
@@ -160,7 +160,7 @@ export default function AssumptionFolio({
           <p>Results update as you edit.</p>
         </div>
         <div className="folio-tabs" role="tablist" aria-label="Assumption groups">
-          {([['buy', 'Buy', Home], ['rent', 'Rent', KeyRound]] as const).map(([id, text, Icon]) => (
+          {([['basics', 'Basics', SlidersHorizontal], ['buy', 'Buy', Home], ['rent', 'Rent', KeyRound]] as const).map(([id, text, Icon]) => (
             <button key={id} className={`folio-tab ${tab === id ? 'active' : ''} is-${id}`} type="button" role="tab" aria-selected={tab === id} onClick={() => onTab(id)}>
               <Icon size={16} aria-hidden="true" />{text}
             </button>
@@ -168,8 +168,8 @@ export default function AssumptionFolio({
         </div>
       </div>
       <div className="control-sheet" role="tabpanel">
-        <div className="preset-block">
-          <span className="eyebrow">Start from</span>
+        <details className="preset-block">
+          <summary>Try an example scenario</summary>
           <div className="preset-row">
             {Object.keys(PRESETS).map((name) => (
               <button type="button" key={name} className="chip" onClick={() => onPreset(name)}>
@@ -177,7 +177,7 @@ export default function AssumptionFolio({
               </button>
             ))}
           </div>
-        </div>
+        </details>
 
         {tab === 'buy' && (
           <div className="control-group">
@@ -191,10 +191,10 @@ export default function AssumptionFolio({
           </div>
         )}
         <div className="control-group">
-          <h3>{tab === 'buy' ? 'Home and ownership' : 'Rent and investment'}</h3>
+          <h3>{tab === 'basics' ? 'Your housing costs' : tab === 'buy' ? 'Home and ownership' : 'Rent and investment'}</h3>
           {fields.map((spec) => (
             <div key={String(spec.key)}>
-              {tab === 'buy' && spec.key === 'mortgageInterestRate' && (
+              {spec.key === 'mortgageInterestRate' && (
                 <ModeField
                   label="Down payment"
                   help="Choose an exact cash amount or percentage of purchase price."
@@ -234,7 +234,7 @@ export default function AssumptionFolio({
             </div>
           ))}
         </div>
-        <details className="advanced">
+        {tab !== 'basics' && <details className="advanced">
           <summary>Advanced assumptions <ChevronDown size={16} aria-hidden="true" /></summary>
           <div className="advanced-content">
             {ADVANCED_FIELDS.map((spec) => <NumericField key={String(spec.key)} spec={spec} inputs={inputs} onChange={onChange} />)}
@@ -244,7 +244,7 @@ export default function AssumptionFolio({
             </label>
             <p className="note">The main comparison is deterministic and nominal. Inflation adjusts the stress test; volatility is not yet modeled.</p>
           </div>
-        </details>
+        </details>}
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  BookmarkPlus, Calendar, ChartLine, Coins, Download, FileSpreadsheet, FlaskConical,
-  Gauge, Home, Info, KeyRound, Landmark, Moon, PiggyBank, Percent, Receipt, Scale, Share2,
+  BookmarkPlus, Calendar, ChartLine, Coins, Download, FileSpreadsheet,
+  Gauge, Home, Info, KeyRound, Landmark, Moon, PiggyBank, Percent, Receipt, Share2,
   ShieldAlert, ShieldCheck, SlidersHorizontal, Sun, Trash2, TrendingUp, Trophy, Upload, Wallet, Wrench, X,
   Bookmark, ArrowLeftRight,
 } from 'lucide-react'
@@ -35,12 +35,10 @@ interface Toast {
 }
 
 const SECTIONS: Array<{ id: string; label: string; short: string; Icon: LucideIcon }> = [
-  { id: 'overview', label: 'Overview', short: 'Overview', Icon: Gauge },
-  { id: 'wealth', label: 'Wealth path', short: 'Wealth', Icon: ChartLine },
-  { id: 'flip', label: 'Flip points', short: 'Flips', Icon: Scale },
-  { id: 'stress', label: 'Stress test', short: 'Stress', Icon: FlaskConical },
+  { id: 'overview', label: 'Your result', short: 'Result', Icon: Gauge },
+  { id: 'afford', label: 'Monthly budget', short: 'Budget', Icon: Wallet },
+  { id: 'explore', label: 'Explore the numbers', short: 'Explore', Icon: ChartLine },
   { id: 'saved', label: 'Saved scenarios', short: 'Saved', Icon: Bookmark },
-  { id: 'afford', label: 'Affordability', short: 'Afford', Icon: Wallet },
 ]
 
 function csvForYears(years: ReturnType<typeof calculateScenario>['years']): string {
@@ -139,7 +137,7 @@ function Metric({ label, value, Icon }: { label: string; value: string; Icon?: L
 export default function App() {
   const initialHash = useMemo(readHashScenario, [])
   const [inputs, setInputs] = useState<CalculatorInputs>(initialHash.inputs)
-  const [folioTab, setFolioTab] = useState<FolioTab>('buy')
+  const [folioTab, setFolioTab] = useState<FolioTab>('basics')
   const [downPaymentMode, setDownPaymentMode] = useState<DownPaymentMode>('dollars')
   const [maintenanceMode, setMaintenanceMode] = useState<MaintenanceMode>('rate')
   const [includeClosingCash, setIncludeClosingCash] = useState(true)
@@ -337,17 +335,9 @@ export default function App() {
         {!narrow && <aside className="aside" aria-label="Assumptions">{folio}</aside>}
 
         <div className="workspace">
-          {narrow && (
-            <button type="button" className="adjust-bar" onClick={() => setSheetOpen(true)}>
-              <SlidersHorizontal size={18} aria-hidden="true" />
-              <span><b>Adjust assumptions</b><small>Price, rates, rent, returns</small></span>
-              <span className={`adjust-live ${winner}`}>{winnerLabel === 'Both strategies' ? 'Even' : `${winner === 'buy' ? 'Buy' : 'Rent'} +${compactMoney.format(result.summary.advantage)}`}</span>
-            </button>
-          )}
-
           <section className="sheet verdict-sheet" id="overview" aria-labelledby="verdict-title">
             <h1 className="verdict-title" id="verdict-title" key={`${winner}-${Math.round(result.summary.advantage / 1000)}`}>
-              {winner === 'tie' ? <>{winnerLabel} <em>finish even.</em></> : <>{winnerLabel} leaves you <em>{compactMoney.format(result.summary.advantage)} ahead.</em></>}
+              {winner === 'tie' ? <>{winnerLabel} <em>finish even.</em></> : <>{winnerLabel} could leave you <em>{compactMoney.format(result.summary.advantage)} ahead.</em></>}
             </h1>
             <p className="verdict-copy">
               {winner === 'tie'
@@ -355,9 +345,14 @@ export default function App() {
                 : <><b>{formatPercent(result.summary.percentageAdvantage)} more net worth</b> than {loserLabel} at year {inputs.horizonYears}, after selling costs. {result.summary.crossoverYear ? `The lead first changes in year ${result.summary.crossoverYear}.` : 'The lead does not change within this horizon.'}</>}
             </p>
 
+            {narrow && <button className="adjust-bar" type="button" onClick={() => setSheetOpen(true)}>
+              <SlidersHorizontal size={18} aria-hidden="true" />
+              <span><b>Edit your numbers</b><small>{money.format(inputs.homePrice)} home · {money.format(inputs.initialMonthlyRent)}/mo rent</small></span>
+            </button>}
+
             <div className="verdict-meta">
               <div className="horizon" role="group" aria-label="Compare at year">
-                <span className="eyebrow">At year</span>
+                <span className="eyebrow">Years you’ll stay</span>
                 {HORIZONS.map((year) => (
                   <button type="button" key={year} className={`chip ${inputs.horizonYears === year ? 'active' : ''}`} aria-pressed={inputs.horizonYears === year} onClick={() => updateInput('horizonYears', year)}>{year}</button>
                 ))}
@@ -371,28 +366,38 @@ export default function App() {
               )}
             </div>
 
+            <h2 className="outcome-label">Estimated wealth after {inputs.horizonYears} years</h2>
+            <p className="note">Buying combines investments with what you could keep from selling the home. Renting counts your investments. Each option invests any savings on housing.</p>
             <div className="strategy-grid">
               {([
-                ['buy', 'Buy + invest savings', Home, buyDisplay, ownerMetrics, null],
-                ['rent', 'Rent + invest savings', KeyRound, rentDisplay, renterMetrics, 'Cash-flow matched'],
-              ] as const).map(([side, title, Icon, amount, metrics, tag]) => (
+                ['buy', 'If you buy', Home, buyDisplay, ownerMetrics],
+                ['rent', 'If you rent', KeyRound, rentDisplay, renterMetrics],
+              ] as const).map(([side, title, Icon, amount, metrics]) => (
                 <article className={`strategy ${side} ${winner === side ? 'ahead' : ''}`} key={side}>
                   <div className="strategy-name">
                     <span className="strategy-icon" aria-hidden="true"><Icon size={18} /></span>
                     <h2>{title}</h2>
-                    {winner === side ? <span className="pill"><Trophy size={13} aria-hidden="true" />Ahead</span> : tag && <span className="pill quiet">{tag}</span>}
+                    {winner === side && <span className="pill"><Trophy size={13} aria-hidden="true" />Ahead</span>}
                   </div>
                   <strong className="strategy-number">{money.format(amount)}</strong>
-                  <div className="metric-grid">{metrics.map(([label, value, MetricIcon]) => <Metric key={label} label={label} value={value} Icon={MetricIcon} />)}</div>
+                  <details className="outcome-detail"><summary>See {side === 'buy' ? 'buying' : 'renting'} breakdown</summary><div className="metric-grid">{metrics.map(([label, value, MetricIcon]) => <Metric key={label} label={label} value={value} Icon={MetricIcon} />)}</div></details>
                 </article>
               ))}
             </div>
           </section>
 
-          <WealthPath result={result} selectedYear={selectedYear} onYear={setSelectedYear} />
-          <FlipMap inputs={inputs} breakEven={breakEven} winner={winner} />
-          <StressTest inputs={inputs} result={result} variants={variants} />
-
+          <Affordability result={result} />
+          <section id="explore" className="explore-section">
+            <h2>Explore the numbers</h2>
+            <details className="explore-item"><summary>How does the lead change over time?</summary>
+              <WealthPath result={result} selectedYear={selectedYear} onYear={setSelectedYear} />
+            </details>
+            <details className="explore-item"><summary>When would the other option win?</summary>
+              <FlipMap inputs={inputs} breakEven={breakEven} winner={winner} />
+            </details>
+            <details className="explore-item"><summary>What if my assumptions are wrong?</summary>
+              <StressTest inputs={inputs} result={result} variants={variants} />
+            </details>
           <section className="sheet table-sheet" id="table" aria-labelledby="table-title">
             <header className="sheet-head">
               <div><h2 id="table-title">Year-by-year breakdown</h2><p>Principal builds equity; interest, rent, tax, insurance, HOA and maintenance are expenses.</p></div>
@@ -407,6 +412,8 @@ export default function App() {
                 </table>
               </div>
             </details>
+          </section>
+
           </section>
 
           <section className="sheet saved-sheet" id="saved" aria-labelledby="scenario-title">
@@ -466,7 +473,7 @@ export default function App() {
             </div>
           </section>
 
-          <Affordability result={result} />
+
 
           <section className="sheet notes-sheet" aria-labelledby="how-title">
             <h2 id="how-title"><Info size={20} aria-hidden="true" />How it works</h2>

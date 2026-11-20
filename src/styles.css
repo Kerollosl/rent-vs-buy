@@ -709,3 +709,14 @@ tbody tr.selected td, tbody tr.selected th { background: color-mix(in srgb, var(
     transition-duration: 0.01ms !important;
   }
 }
+
+.folio-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.preset-block summary, .outcome-detail summary, .explore-item > summary { cursor: pointer; padding-block: 12px; font-weight: 600; }
+.outcome-label { margin: 24px 0 0; font-size: 1rem; }
+.outcome-label + .strategy-grid { margin-top: 10px; }
+.explore-section { display: grid; gap: 10px; min-width: 0; scroll-margin-top: 90px; }
+.explore-section > h2 { margin: 8px 0; }
+.explore-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-m); min-width: 0; }
+.explore-item > summary { padding: 16px; }
+.verdict-sheet .adjust-bar { position: static; margin: 16px 0; width: 100%; }
+@media (max-width: 980px) { .nav { grid-template-columns: repeat(4, 1fr); } }
